@@ -435,17 +435,23 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.registerTemplateInputsToPerformanceTest() {
-        val registerInputs: (Task) -> Unit = { prepareSampleTask ->
+        val isSampleTask: (Task) -> Boolean = {
+            it is ProjectGeneratorTask || it is RemoteProject || it is JavaExecProjectGeneratorTask
+        }
+        val isPerformanceTask: (Task) -> Boolean = {
+            it is PerformanceTest
+        }
+        fun registerInputs (performanceTest: PerformanceTest) = { prepareSampleTask: Task ->
             val prepareSampleTaskInputs = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
-            tasks.withType<PerformanceTest>() {
-                prepareSampleTaskInputs.forEach { key, value ->
-                    this.inputs.property(key, value).optional(true)
-                }
+            println("copying " + prepareSampleTaskInputs + " from " + prepareSampleTask + " to " + performanceTest)
+            prepareSampleTaskInputs.forEach { key, value ->
+                performanceTest.inputs.property(key, value).optional(true)
             }
         }
-
-        configureSampleGenerators {
-            configureEach(registerInputs)
+        gradle.taskGraph.whenReady {
+            allTasks.filter(isPerformanceTask).forEach {
+                allTasks.filter(isSampleTask).forEach(registerInputs(it as PerformanceTest))
+            }
         }
     }
 
