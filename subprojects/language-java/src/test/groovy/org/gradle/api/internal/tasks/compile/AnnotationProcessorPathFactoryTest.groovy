@@ -22,8 +22,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.api.internal.tasks.compile.processing.DefaultProcessorPath
 import org.gradle.api.model.ObjectFactory
@@ -38,9 +36,8 @@ class AnnotationProcessorPathFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    AnnotationProcessorDetector detector = Mock(AnnotationProcessorDetector)
     CompileOptions options = new CompileOptions(Stub(ProjectLayout), Mock(ObjectFactory))
-    AnnotationProcessorPathFactory factory = new AnnotationProcessorPathFactory(TestFiles.fileCollectionFactory(), detector)
+    AnnotationProcessorPathFactory factory = new AnnotationProcessorPathFactory(TestFiles.fileCollectionFactory())
 
     def "uses path defined on Java compile options, as a FileCollection"() {
         def cp = files("lib.jar")
@@ -196,29 +193,11 @@ class AnnotationProcessorPathFactoryTest extends Specification {
     }
 
     @Unroll
-    def "uses compile classpath when it contains processors (where options.annotationProcessorPath is #scenario)"() {
-        given:
-        def jar = tmpDir.file("classes.jar")
-        def dir = tmpDir.file("classes-dir")
-        def cp = files(jar, dir)
-        detector.detectProcessors(cp) >> ["Foo" : Mock(AnnotationProcessorDeclaration)]
-
-        expect:
-        factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == cp.files
-
-        where:
-        scenario                 | annotationProcessorPath
-        'null'                   | null
-        'an empty configuration' | Mock(Configuration) { isEmpty() >> true }
-    }
-
-    @Unroll
-    def "uses empty path when compile classpath does not include any processors (where options.annotationProcessorPath is #scenario)"() {
+    def "uses empty path when options.annotationProcessorPath is #scenario"() {
         given:
         def dir = tmpDir.file("classes-dir")
         def jar = tmpDir.file("classes.jar")
         def cp = files(dir, jar)
-        detector.detectProcessors(cp) >> [:]
 
         expect:
         factory.getEffectiveAnnotationProcessorClasspath(options, cp).empty

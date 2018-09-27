@@ -302,6 +302,11 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 
 The left shift (`<<`) operator acted as an alias for adding a `doLast` action to an existing task. It was deprecated since Gradle 3.2 and has now been removed.
 
+### Annotation processors on the compile classpath are now ignored
+
+Annotation processors on the compile classpath are no longer detected and used when compiling Java projects.
+Please add them to the [annotation processor path](userguide/java_plugin.html#example_declaring_annotation_processors) instead.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
