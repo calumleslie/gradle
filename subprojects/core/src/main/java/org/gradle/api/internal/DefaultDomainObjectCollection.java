@@ -138,6 +138,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public void all(Action<? super T> action) {
+        getMutationGuard().assertMutationAllowed("all(Action)", this);
 
         action = whenObjectAdded(action);
 
@@ -192,18 +193,18 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
+        assertMutable("withType(Class, Action)");
         DomainObjectCollection<S> result = withType(type);
         result.all(configureAction);
         return result;
     }
 
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
-        DomainObjectCollection<S> result = withType(type);
-        result.all(configureClosure);
-        return result;
+        return withType(type, toAction(configureClosure));
     }
 
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
+        getMutationGuard().assertMutationAllowed("whenObjectAdded(Action)", this);
         store.realizePending(type);
         eventRegister.registerEagerAddAction(type, action);
         return action;

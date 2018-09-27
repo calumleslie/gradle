@@ -308,7 +308,8 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
 
         @Override
         public MutationGuard getMutationGuard() {
-            throw new UnsupportedOperationException();
+            // TODO: Implement this for composite domain collections
+            return MutationGuards.noGuard();
         }
     }
 }

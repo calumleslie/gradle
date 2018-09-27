@@ -74,7 +74,11 @@ public class MutationGuards {
         if (target instanceof WithMutationGuard) {
             return ((WithMutationGuard) target).getMutationGuard();
         } else {
-            return IDENTITY_MUTATION_GUARD;
+            return noGuard();
         }
+    }
+
+    public static MutationGuard noGuard() {
+        return IDENTITY_MUTATION_GUARD;
     }
 }
