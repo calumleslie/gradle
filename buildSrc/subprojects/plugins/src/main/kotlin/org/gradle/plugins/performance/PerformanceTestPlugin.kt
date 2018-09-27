@@ -92,6 +92,8 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         createRebaselineTask(performanceTestSourceSet)
 
+        registerTemplateInputsToPerformanceTest()
+
         configureIdePlugins(performanceTestSourceSet)
     }
 
@@ -418,8 +420,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             dependsOn(prepareSamplesTask)
 
-            registerTemplateInputsToPerformanceTest()
-
             configureSampleGenerators {
                 this@apply.mustRunAfter(this)
             }
@@ -434,14 +434,17 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun PerformanceTest.registerTemplateInputsToPerformanceTest() {
+    fun Project.registerTemplateInputsToPerformanceTest() {
         val registerInputs: (Task) -> Unit = { prepareSampleTask ->
             val prepareSampleTaskInputs = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
-            prepareSampleTaskInputs.forEach { key, value ->
-                inputs.property(key, value).optional(true)
+            tasks.withType<PerformanceTest>() {
+                prepareSampleTaskInputs.forEach { key, value ->
+                    this.inputs.property(key, value).optional(true)
+                }
             }
         }
-        project.configureSampleGenerators {
+
+        configureSampleGenerators {
             configureEach(registerInputs)
         }
     }
